@@ -1,0 +1,92 @@
+﻿<Window x:Class="DocumentEditor_WPF.EditorPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DocumentEditor_WPF"
+        xmlns:utils="clr-namespace:DocumentEditor_WPF.Utils"
+        xmlns:viewmodels="clr-namespace:DocumentEditor_WPF.ViewModels"
+        mc:Ignorable="d"
+        Title="Editor" Height="450" Width="800">
+    <Window.Resources>
+        <DataTemplate x:Key="EditableDataTemplate">
+            <DockPanel>
+                <ToolBar DockPanel.Dock="Top">
+                    <Button Command="EditingCommands.ToggleBold" ToolTip="Pogrubienie">
+                        <TextBlock Text="B" FontWeight="Bold" />
+                    </Button>
+
+                    <Button Command="EditingCommands.ToggleItalic" ToolTip="Pochylenie">
+                        <TextBlock Text="I" FontWeight="Bold" FontStyle="Italic" />
+                    </Button>
+
+                    <Button Command="EditingCommands.IncreaseFontSize" ToolTip="Zwiększ Czcionkę">
+                        <TextBlock Text="A" FontWeight="Bold" FontSize="15" />
+                    </Button>
+
+                    <Button Command="EditingCommands.DecreaseFontSize" ToolTip="Zmniejsz Czcionkę">
+                        <TextBlock Text="A" FontWeight="Bold" FontSize="10" />
+                    </Button>
+                </ToolBar>
+
+                <RichTextBox utils:RichTextBoxHelper.Path="{Binding Path}" TextChanged="Document_TextChanged" />
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ViewableDataTemplate">
+            <DocumentViewer utils:DocumentViewerHelper.Path="{Binding Path}" />
+        </DataTemplate>
+
+        <utils:DocumentTemplateSelector x:Key="DocumentTemplateSelector"
+                                        ViewableDocumentTemplate="{StaticResource ViewableDataTemplate}"
+                                        EditableDocumentTemplate="{StaticResource EditableDataTemplate}" />
+
+    </Window.Resources>
+
+    <Window.DataContext>
+        <viewmodels:DocumentEditorViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="10*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="Nowy Dokument" Command="{Binding NewFileCommand}" />
+            <MenuItem Header="Otwórz Dokument" Command="{Binding OpenFileCommand}" />
+            <MenuItem Header="Zamknij Dokument" Command="{Binding CloseFileCommand}" />
+            <MenuItem Header="Wyjdź" Command="{Binding CloseAppCommand}" />
+        </Menu>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6*" />
+            </Grid.ColumnDefinitions>
+            <TreeView ItemsSource="{Binding Files}" Grid.Column="0">
+                <TreeView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </TreeView.ItemTemplate> 
+            </TreeView>
+
+            <TabControl ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}" ContentTemplateSelector="{StaticResource DocumentTemplateSelector}" Grid.Column="1">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+            </TabControl>
+        </Grid>
+
+        <StatusBar VerticalAlignment="Bottom" Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="Gotowe" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

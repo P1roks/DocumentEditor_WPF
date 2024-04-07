@@ -1,0 +1,14 @@
+﻿<Window x:Class="DocumentEditor_WPF.CreateFileDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DocumentEditor_WPF"
+        mc:Ignorable="d"
+        Title="Stwórz Plik" Height="150" Width="180">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock Text="Podaj Nazwę Pliku" Margin="5" />
+        <TextBox x:Name="ResponseTextBox" Padding="5" Margin="5" />
+        <Button Content="OK" Click="OKButton_Click" Margin="5" />
+    </StackPanel>
+</Window>
