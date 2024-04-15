@@ -6,18 +6,67 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Diagnostics;
+using EnumExtensions;
 
 namespace DocumentEditor_WPF.ViewModels
 {
 
     public class DocumentEditorViewModel : INotifyPropertyChanged
     {
-        public ObservableCollection<File> Files { get; set; } = new();
+        private static readonly List<string> viewableExtensions = new() { ".pdf", ".txt", ".xps", ".rtf", ".xaml" };
+        public static readonly List<string> SortOptions =
+            Enum.GetValues(typeof(Enums.SortOptions)).Cast<Enums.SortOptions>().Select(x => x.toString()).ToList();
+        public static readonly List<string> FilterOptions = 
+            Enum.GetValues(typeof(Enums.FilterOptions)).Cast<Enums.FilterOptions>().Select(x => x.toString()).ToList();
+
+        public ObservableCollection<File> OpenedFiles { get; set; } = new();
+        public ObservableCollection<File> DirectoryFiles { get; set; } = new();
+        private List<File> directoryFiles = new();
+
+        public Enums.SortOptions Sort
+        {
+            set{
+                IEnumerable<File> selected;
+                switch(value){
+                    case Enums.SortOptions.NameDesc:
+                        selected = DirectoryFiles.OrderByDescending(x => x.Name).ToList();
+                        break;
+                    case Enums.SortOptions.NameAsc:
+                        selected = DirectoryFiles.OrderBy(x => x.Name).ToList();
+                        break;
+                    case Enums.SortOptions.ExtensionDesc:
+                        selected = DirectoryFiles.OrderByDescending(x => IO.Path.GetExtension(x.Name)).ToList();
+                        break;
+                    case Enums.SortOptions.ExtensionAsc:
+                        selected = DirectoryFiles.OrderBy(x => IO.Path.GetExtension(x.Name)).ToList();
+                        break;
+                    default:
+                        selected = DirectoryFiles;
+                        break;
+                }
+                RepopulateDirectoryFiles(selected);
+            }
+        }
+
+        public Enums.FilterOptions Filter
+        {
+            set{
+                if(value == Enums.FilterOptions.All)
+                {
+                    RepopulateDirectoryFiles(directoryFiles);
+                }
+                else
+                {
+                    string extension = "." + value.ToString().ToLower();
+                    IEnumerable<File> filtered = directoryFiles.Where(x => IO.Path.GetExtension(x.Name) == extension);
+                    RepopulateDirectoryFiles(filtered);
+                }
+            }
+        }
 
         public File SelectedFile { get; set; }
 
@@ -25,6 +74,8 @@ namespace DocumentEditor_WPF.ViewModels
         public ICommand NewFileCommand { get => new RelayCommand(NewFile); }
         public ICommand OpenFileCommand { get => new RelayCommand(OpenFile); }
         public ICommand CloseAppCommand { get => new RelayCommand(CloseApp); }
+        public ICommand OpenDirectoryCommand { get => new RelayCommand(OpenDirectory);  }
+        public ICommand SelectTreeViewCommand { get => new RelayCommand<File>(SelectTreeView); }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -35,7 +86,7 @@ namespace DocumentEditor_WPF.ViewModels
 
         private void CloseFile()
         {
-            Files.Remove(SelectedFile);
+            OpenedFiles.Remove(SelectedFile);
         }
 
         private void NewFile()
@@ -56,7 +107,7 @@ namespace DocumentEditor_WPF.ViewModels
                     Path = fullPath,
                     Name = filename
                 };
-                Files.Add(created);
+                OpenedFiles.Add(created);
                 SelectedFile = created;
                 onPropertyChanged(nameof(SelectedFile));
             }
@@ -69,7 +120,7 @@ namespace DocumentEditor_WPF.ViewModels
                 Filter = "Pliki tekstowe (*.txt)|*.txt|" +
                          "Tekst Sformatowany (*.rtf)|*.rtf|" +
                          "Pliki XAML (*.xaml)|*.xaml|" +
-                         //       "Pliki PDF (*.pdf)|*.pdf|" +
+                         "Pliki PDF (*.pdf)|*.pdf|" +
                          "Pliki XPS (*.xps)|*.xps"
             };
 
@@ -80,15 +131,57 @@ namespace DocumentEditor_WPF.ViewModels
                     Path = dialog.FileName,
                     Name = IO.Path.GetFileName(dialog.FileName)
                 };
-                Files.Add(selected);
+                OpenedFiles.Add(selected);
                 SelectedFile = selected;
                 onPropertyChanged(nameof(SelectedFile));
+            }
+        }
+
+        private void OpenDirectory()
+        {
+            CommonOpenFileDialog dialog = new()
+            {
+                IsFolderPicker = true
+            };
+
+            if(dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                directoryFiles =
+                    IO.Directory.GetFiles(dialog.FileName)
+                    .Where(file => viewableExtensions.Contains(IO.Path.GetExtension(file)))
+                    .Select(file => new File()
+                        { 
+                            Path = file,
+                            Name = IO.Path.GetFileName(file),
+                        }
+                    ).ToList();
+
+                RepopulateDirectoryFiles(directoryFiles);
             }
         }
 
         private void CloseApp()
         {
             System.Windows.Application.Current.Shutdown();
+        }
+
+        private void SelectTreeView(File selected)
+        {
+            if (!OpenedFiles.Contains(selected))
+            {
+                OpenedFiles.Add(selected);
+            }
+            SelectedFile = selected;
+            onPropertyChanged(nameof(SelectedFile));
+        }
+
+        private void RepopulateDirectoryFiles(IEnumerable<File> collection)
+        {
+            DirectoryFiles.Clear();
+            foreach(var file in collection)
+            {
+                DirectoryFiles.Add(file);
+            }
         }
     }
 }

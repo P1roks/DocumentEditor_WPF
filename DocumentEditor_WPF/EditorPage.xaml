@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DocumentEditor_WPF"
         xmlns:utils="clr-namespace:DocumentEditor_WPF.Utils"
         xmlns:viewmodels="clr-namespace:DocumentEditor_WPF.ViewModels"
         mc:Ignorable="d"
         Title="Editor" Height="450" Width="800">
     <Window.Resources>
+        <utils:EnumIntConverter x:Key="EnumIntConverter" />
+
         <DataTemplate x:Key="EditableDataTemplate">
             <DockPanel>
                 <ToolBar DockPanel.Dock="Top">
@@ -58,23 +59,42 @@
             <MenuItem Header="Nowy Dokument" Command="{Binding NewFileCommand}" />
             <MenuItem Header="Otwórz Dokument" Command="{Binding OpenFileCommand}" />
             <MenuItem Header="Zamknij Dokument" Command="{Binding CloseFileCommand}" />
+            <MenuItem Header="Otwórz Folder" Command="{Binding OpenDirectoryCommand}" />
             <MenuItem Header="Wyjdź" Command="{Binding CloseAppCommand}" />
         </Menu>
         
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="6*" />
+                <ColumnDefinition Width="4*" />
             </Grid.ColumnDefinitions>
-            <TreeView ItemsSource="{Binding Files}" Grid.Column="0">
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="12*" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Sortuj Według" HorizontalAlignment="Center" Grid.Row="0" />
+                <ComboBox ItemsSource="{x:Static viewmodels:DocumentEditorViewModel.SortOptions}"
+                          SelectedIndex="{Binding Sort, Converter={StaticResource EnumIntConverter}}" Grid.Row="1" />
+                <TextBlock Text="Filtruj" HorizontalAlignment="Center" Grid.Row="2" />
+                <ComboBox ItemsSource="{x:Static viewmodels:DocumentEditorViewModel.FilterOptions}"
+                          SelectedIndex="{Binding Filter, Converter={StaticResource EnumIntConverter}}" Grid.Row="3" />
+
+                <TreeView ItemsSource="{Binding DirectoryFiles}" Grid.Row="4"
+                          Tag="{Binding SelectTreeViewCommand}" SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
                     </DataTemplate>
                 </TreeView.ItemTemplate> 
-            </TreeView>
+                </TreeView>
+            </Grid>
 
-            <TabControl ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}" ContentTemplateSelector="{StaticResource DocumentTemplateSelector}" Grid.Column="1">
+            <TabControl ItemsSource="{Binding OpenedFiles}" SelectedItem="{Binding SelectedFile}" ContentTemplateSelector="{StaticResource DocumentTemplateSelector}" Grid.Column="1">
                 <TabControl.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />

@@ -25,4 +25,31 @@ namespace DocumentEditor_WPF.Utils
             _exec();
         }
     }
+
+    internal class RelayCommand<T> : ICommand
+    {
+        public event EventHandler? CanExecuteChanged;
+
+        private Action<T> _exec;
+
+        public RelayCommand(Action<T> exec)
+        {
+            _exec = exec;
+        }
+
+        public bool CanExecute(object? parameter)
+        {
+            if (parameter is null || parameter is not T)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void Execute(object? parameter)
+        {
+            _exec((T)parameter);
+        }
+    }
 }

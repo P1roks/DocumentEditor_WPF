@@ -37,9 +37,28 @@ namespace DocumentEditor_WPF
 
             string dataFormat = Utils.Utils.GetPathDataFormat(path);
             TextRange range = new(rtb.Document.ContentStart, rtb.Document.ContentEnd);
-            FileStream fStream = new(path, FileMode.Create, FileAccess.Write);
+            FileStream fStream;
+            try
+            {
+                 fStream = new(path, FileMode.Create, FileAccess.Write);
+            }
+            catch (IOException)
+            {
+                return;
+            }
             range.Save(fStream, dataFormat);
             fStream.Close();
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var treeView = (TreeView)sender;
+            var command = (ICommand)treeView.Tag;
+            Models.File selected = (Models.File)treeView.SelectedItem;
+            if(selected != null)
+            {
+                command.Execute(selected);
+            }
         }
     }
 }
