@@ -5,10 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DocumentEditor_WPF"
         mc:Ignorable="d"
+        Background="#1e1e1e"
+        Foreground="White"
         Title="Stwórz Plik" Height="150" Width="180">
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock Text="Podaj Nazwę Pliku" Margin="5" />
-        <TextBox x:Name="ResponseTextBox" Padding="5" Margin="5" />
-        <Button Content="OK" Click="OKButton_Click" Margin="5" />
+        <TextBox x:Name="ResponseTextBox" Padding="5" Margin="5" Foreground="White"/>
+        <Button Content="OK" Click="OKButton_Click" Margin="5" Foreground="White" Background="#007acc"/>
     </StackPanel>
 </Window>

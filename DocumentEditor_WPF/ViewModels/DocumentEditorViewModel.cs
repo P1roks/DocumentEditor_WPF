@@ -68,7 +68,33 @@ namespace DocumentEditor_WPF.ViewModels
             }
         }
 
-        public File SelectedFile { get; set; }
+        public File SelectedFile {
+            get => selectedFile;
+            set
+            {
+                selectedFile = value;
+                onPropertyChanged(nameof(SelectedFile));
+                onPropertyChanged(nameof(Status));
+            }
+        }
+        private File selectedFile = null;
+        public string Status {
+            get
+            {
+                if (SelectedFile is null) return "";
+                switch(IO.Path.GetExtension(SelectedFile.Name))
+                {
+                    case ".txt":
+                    case ".rtf":
+                    case ".xaml":
+                        return "Edytowanie";
+                    case ".pdf":
+                    case ".xps":
+                    default:
+                        return "Przeglądanie";
+                }
+            }
+        }
 
         public ICommand CloseFileCommand { get => new RelayCommand(CloseFile); }
         public ICommand NewFileCommand { get => new RelayCommand(NewFile); }
@@ -109,7 +135,6 @@ namespace DocumentEditor_WPF.ViewModels
                 };
                 OpenedFiles.Add(created);
                 SelectedFile = created;
-                onPropertyChanged(nameof(SelectedFile));
             }
         }
 
@@ -133,7 +158,6 @@ namespace DocumentEditor_WPF.ViewModels
                 };
                 OpenedFiles.Add(selected);
                 SelectedFile = selected;
-                onPropertyChanged(nameof(SelectedFile));
             }
         }
 
@@ -172,7 +196,6 @@ namespace DocumentEditor_WPF.ViewModels
                 OpenedFiles.Add(selected);
             }
             SelectedFile = selected;
-            onPropertyChanged(nameof(SelectedFile));
         }
 
         private void RepopulateDirectoryFiles(IEnumerable<File> collection)
